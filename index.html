@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="tr">
 <head>
@@ -8,51 +7,49 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <a href="https://ovarthy-bot.github.io/navigasyon/" class="home-btn" title="Ana Sayfa">🏠</a>
-    
-    <h1>✈️ İş Planı Yönetimi ONLINE</h1>
+    <a href="https://ovarthy-bot.github.io/navigasyon/" class="home-btn" title="Ana Sayfa">&#127968;</a>
+
+    <h1>&#9992;&#65039; İş Planı Yönetimi ONLINE</h1>
 
     <form id="isEkleFormu">
         <input type="hidden" id="isId" value="">
         <input type="text" id="isTanimi" placeholder="İş Tanımı" required>
         <input type="text" id="ucakModeli" placeholder="Uçak Modeli" required>
-        <input type="text" id="gerekliKimyasallar" placeholder="Gerekli Kimyasallar (virgülle ayırın)" required>
-        <input type="text" id="gerekliToollar" placeholder="Gerekli Toollar (virgülle ayırın)" required>
+        <input type="text" id="gerekliKimyasallar" placeholder="Gerekli Kimyasallar (virgülle ayırın)">
+        <input type="text" id="gerekliToollar" placeholder="Gerekli Toollar (virgülle ayırın)">
         <textarea id="ozelNotlar" placeholder="Özel Notlar"></textarea>
+
+        <label for="resimler" class="resim-label">Resim Ekle (max 3 adet, opsiyonel)</label>
+        <input type="file" id="resimler" accept="image/*" multiple>
+        <div id="resimOnizleme" class="resim-onizleme"></div>
+
         <button type="submit" id="formButton">İş Planı Ekle</button>
     </form>
 
     <hr>
 
-  ...
     <h2>Kayıtlı İş Planları</h2>
-    <div id="isPlaniListesi">
-        </div>
+    <div id="isPlaniListesi"></div>
 
-        <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-storage.js"></script>
 
-        <script>
-        // Yeni SDK import ve initializeApp kodlarını kaldırdık!
-        // YALNIZCA KESİN GEREKLİ OLAN KOD BU BLOKTA KALMALIDIR.
-        
+    <script>
         const firebaseConfig = {
-          apiKey: "AIzaSyCRHZOad1bBRLku_SLYRdRMBLZh9q8Q5Z8",
-          authDomain: "isplanla-d7835.firebaseapp.com",
-          projectId: "isplanla-d7835",
-          storageBucket: "isplanla-d7835.firebasestorage.app",
-          messagingSenderId: "724229140928",
-          appId: "1:724229140928:web:35ff075c47dcb533f35825"
+            apiKey: "AIzaSyCRHZOad1bBRLku_SLYRdRMBLZh9q8Q5Z8",
+            authDomain: "isplanla-d7835.firebaseapp.com",
+            projectId: "isplanla-d7835",
+            storageBucket: "isplanla-d7835.firebasestorage.app",
+            messagingSenderId: "724229140928",
+            appId: "1:724229140928:web:35ff075c47dcb533f35825"
         };
 
-        // Firebase'i başlat (V8 yöntemi)
         firebase.initializeApp(firebaseConfig);
-        // Firestore referansını al ve GLOBAL olarak tanımla
         const db = firebase.firestore();
+        const storage = firebase.storage();
     </script>
 
-        <script src="script.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
-
-
