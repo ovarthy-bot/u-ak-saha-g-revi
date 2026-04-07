@@ -1,47 +1,74 @@
-// Firestore ve Storage referanslari index.html'de tanimlandi: db, storage
-const form = document.getElementById('isEkleFormu');
-const listesi = document.getElementById('isPlaniListesi');
-const isIdInput = document.getElementById('isId');
-const formButton = document.getElementById('formButton');
-const resimInput = document.getElementById('resimler');
-const resimOnizleme = document.getElementById('resimOnizleme');
+// Firestore referansi index.html'de tanimlandi: db
+var form = document.getElementById('isEkleFormu');
+var listesi = document.getElementById('isPlaniListesi');
+var isIdInput = document.getElementById('isId');
+var formButton = document.getElementById('formButton');
+var resimInput = document.getElementById('resimler');
+var resimOnizleme = document.getElementById('resimOnizleme');
 
-// Yeni secilen dosyalar ve mevcut URL'ler
-let yeniDosyalar = [];
-let mevcutResimURLleri = [];
+// base64 resimleri tutan dizi (hem yeni hem mevcut)
+var resimlerBase64 = [];
 
-// ========== RESIM ONIZLEME ==========
+// ========== RESIM SIKISTIRMA ==========
+
+function resmiSikistir(file, maxGenislik, kalite) {
+    return new Promise(function (resolve) {
+        var reader = new FileReader();
+        reader.onload = function (e) {
+            var img = new Image();
+            img.onload = function () {
+                var canvas = document.createElement('canvas');
+                var oran = Math.min(maxGenislik / img.width, 1);
+                canvas.width = img.width * oran;
+                canvas.height = img.height * oran;
+                var ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                var base64 = canvas.toDataURL('image/jpeg', kalite);
+                resolve(base64);
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    });
+}
+
+// ========== RESIM SECME VE ONIZLEME ==========
 
 resimInput.addEventListener('change', function (e) {
     var files = Array.from(e.target.files);
-    var toplam = yeniDosyalar.length + mevcutResimURLleri.length + files.length;
 
-    if (toplam > 3) {
+    if (resimlerBase64.length + files.length > 3) {
         alert('En fazla 3 resim ekleyebilirsiniz!');
         resimInput.value = '';
         return;
     }
 
+    var promises = [];
     for (var i = 0; i < files.length; i++) {
-        if (yeniDosyalar.length + mevcutResimURLleri.length >= 3) break;
-        yeniDosyalar.push(files[i]);
+        if (resimlerBase64.length + promises.length >= 3) break;
+        promises.push(resmiSikistir(files[i], 800, 0.6));
     }
 
+    Promise.all(promises).then(function (sonuclar) {
+        for (var j = 0; j < sonuclar.length; j++) {
+            resimlerBase64.push(sonuclar[j]);
+        }
+        renderOnizleme();
+    });
+
     resimInput.value = '';
-    renderOnizleme();
 });
 
 function renderOnizleme() {
     resimOnizleme.innerHTML = '';
 
-    // Mevcut (Firebase Storage'daki) resimler
-    for (var i = 0; i < mevcutResimURLleri.length; i++) {
+    for (var i = 0; i < resimlerBase64.length; i++) {
         (function (index) {
             var item = document.createElement('div');
             item.className = 'onizleme-item';
 
             var img = document.createElement('img');
-            img.src = mevcutResimURLleri[index];
+            img.src = resimlerBase64[index];
             img.alt = 'Resim ' + (index + 1);
             item.appendChild(img);
 
@@ -50,96 +77,14 @@ function renderOnizleme() {
             btn.className = 'sil-btn';
             btn.textContent = 'X';
             btn.addEventListener('click', function () {
-                mevcutResimSil(index);
+                resimlerBase64.splice(index, 1);
+                renderOnizleme();
             });
             item.appendChild(btn);
 
             resimOnizleme.appendChild(item);
         })(i);
     }
-
-    // Yeni secilmis dosyalar
-    for (var j = 0; j < yeniDosyalar.length; j++) {
-        (function (index) {
-            var item = document.createElement('div');
-            item.className = 'onizleme-item';
-
-            var img = document.createElement('img');
-            img.alt = 'Yeni Resim ' + (index + 1);
-            var reader = new FileReader();
-            reader.onload = function (ev) {
-                img.src = ev.target.result;
-            };
-            reader.readAsDataURL(yeniDosyalar[index]);
-            item.appendChild(img);
-
-            var btn = document.createElement('button');
-            btn.type = 'button';
-            btn.className = 'sil-btn';
-            btn.textContent = 'X';
-            btn.addEventListener('click', function () {
-                yeniDosyaSil(index);
-            });
-            item.appendChild(btn);
-
-            resimOnizleme.appendChild(item);
-        })(j);
-    }
-}
-
-function yeniDosyaSil(index) {
-    yeniDosyalar.splice(index, 1);
-    renderOnizleme();
-}
-
-function mevcutResimSil(index) {
-    var url = mevcutResimURLleri[index];
-    try {
-        var ref = storage.refFromURL(url);
-        ref.delete().then(function () {
-            console.log('Resim Storage\'dan silindi.');
-        }).catch(function (err) {
-            console.error('Storage silme hatasi:', err);
-        });
-    } catch (err) {
-        console.error('refFromURL hatasi:', err);
-    }
-    mevcutResimURLleri.splice(index, 1);
-    renderOnizleme();
-}
-
-// ========== FIREBASE STORAGE YUKLEME ==========
-
-function resimleriYukle(dosyalar, docId) {
-    var promises = [];
-    for (var i = 0; i < dosyalar.length; i++) {
-        (function (file) {
-            var ref = storage.ref('isplanlari/' + docId + '/' + Date.now() + '_' + file.name);
-            var promise = ref.put(file).then(function (snapshot) {
-                return snapshot.ref.getDownloadURL();
-            });
-            promises.push(promise);
-        })(dosyalar[i]);
-    }
-    return Promise.all(promises);
-}
-
-function tumResimleriSil(resimURLleri) {
-    if (!resimURLleri || resimURLleri.length === 0) return Promise.resolve();
-    var promises = [];
-    for (var i = 0; i < resimURLleri.length; i++) {
-        (function (url) {
-            try {
-                var ref = storage.refFromURL(url);
-                promises.push(ref.delete().catch(function (err) {
-                    console.error('Resim silme hatasi:', err);
-                }));
-            } catch (err) {
-                console.error('refFromURL hatasi:', err);
-            }
-        })(resimURLleri[i]);
-    }
-    return Promise.all(promises);
 }
 
 // ========== FORMU SIFIRLA ==========
@@ -149,8 +94,7 @@ function formuSifirla() {
     isIdInput.value = '';
     formButton.textContent = 'İş Planı Ekle';
     formButton.disabled = false;
-    yeniDosyalar = [];
-    mevcutResimURLleri = [];
+    resimlerBase64 = [];
     renderOnizleme();
 }
 
@@ -159,7 +103,9 @@ function formuSifirla() {
 db.collection('isplanlari').onSnapshot(function (snapshot) {
     var isplanlari = [];
     snapshot.forEach(function (doc) {
-        isplanlari.push(Object.assign({}, doc.data(), { id: doc.id }));
+        var data = doc.data();
+        data.id = doc.id;
+        isplanlari.push(data);
     });
     renderIsPlanlari(isplanlari);
 }, function (error) {
@@ -236,12 +182,12 @@ function renderIsPlanlari(planlar) {
             div.appendChild(silBtn);
 
             // Resim tiklama (buyuk ac)
-            var resimler = div.querySelectorAll('.kart-resimler img');
-            for (var k = 0; k < resimler.length; k++) {
-                resimler[k].addEventListener('click', function () {
+            var kartResimler = div.querySelectorAll('.kart-resimler img');
+            for (var k = 0; k < kartResimler.length; k++) {
+                kartResimler[k].style.cursor = 'pointer';
+                kartResimler[k].addEventListener('click', function () {
                     window.open(this.src);
                 });
-                resimler[k].style.cursor = 'pointer';
             }
 
             listesi.appendChild(div);
@@ -249,7 +195,7 @@ function renderIsPlanlari(planlar) {
     }
 }
 
-// ========== FORM GONDERIMI (EKLE / GUNCELLE) ==========
+// ========== FORM GONDERIMI ==========
 
 form.addEventListener('submit', function (e) {
     e.preventDefault();
@@ -265,97 +211,82 @@ form.addEventListener('submit', function (e) {
         gerekliToollar: form.gerekliToollar.value
             ? form.gerekliToollar.value.split(',').map(function (s) { return s.trim(); }).filter(function (s) { return s; })
             : [],
-        ozelNotlar: form.ozelNotlar.value
+        ozelNotlar: form.ozelNotlar.value,
+        resimler: resimlerBase64.slice()
     };
 
     var isId = isIdInput.value;
 
     if (isId) {
         // GUNCELLEME
-        var yuklePromise;
-        if (yeniDosyalar.length > 0) {
-            yuklePromise = resimleriYukle(yeniDosyalar, isId);
-        } else {
-            yuklePromise = Promise.resolve([]);
-        }
-
-        yuklePromise.then(function (yeniURLler) {
-            isData.resimler = mevcutResimURLleri.concat(yeniURLler);
-            return db.collection('isplanlari').doc(isId).update(isData);
-        }).then(function () {
-            alert('İş planı başarıyla güncellendi!');
-            formuSifirla();
-        }).catch(function (error) {
-            console.error('Guncelleme hatasi:', error);
-            alert('Hata olustu: ' + error.message);
-            formButton.disabled = false;
-            formButton.textContent = 'İş Planını Güncelle';
-        });
-
+        db.collection('isplanlari').doc(isId).update(isData)
+            .then(function () {
+                alert('İş planı başarıyla güncellendi!');
+                formuSifirla();
+            })
+            .catch(function (error) {
+                console.error('Guncelleme hatasi:', error);
+                alert('Hata: ' + error.message);
+                formButton.disabled = false;
+                formButton.textContent = 'İş Planını Güncelle';
+            });
     } else {
         // EKLEME
-        isData.resimler = [];
-        db.collection('isplanlari').add(isData).then(function (docRef) {
-            if (yeniDosyalar.length > 0) {
-                return resimleriYukle(yeniDosyalar, docRef.id).then(function (urls) {
-                    return docRef.update({ resimler: urls });
-                });
-            }
-        }).then(function () {
-            alert('İş planı başarıyla eklendi!');
-            formuSifirla();
-        }).catch(function (error) {
-            console.error('Ekleme hatasi:', error);
-            alert('Hata olustu: ' + error.message);
-            formButton.disabled = false;
-            formButton.textContent = 'İş Planı Ekle';
-        });
+        db.collection('isplanlari').add(isData)
+            .then(function () {
+                alert('İş planı başarıyla eklendi!');
+                formuSifirla();
+            })
+            .catch(function (error) {
+                console.error('Ekleme hatasi:', error);
+                alert('Hata: ' + error.message);
+                formButton.disabled = false;
+                formButton.textContent = 'İş Planı Ekle';
+            });
     }
 });
 
-// ========== IS PLANI SIL ==========
+// ========== SIL ==========
 
 function silIsPlan(id) {
     if (!confirm('Bu iş planını silmek istediğinizden emin misiniz?')) return;
 
-    db.collection('isplanlari').doc(id).get().then(function (doc) {
-        if (doc.exists) {
-            var plan = doc.data();
-            return tumResimleriSil(plan.resimler);
-        }
-    }).then(function () {
-        return db.collection('isplanlari').doc(id).delete();
-    }).then(function () {
-        alert('İş planı başarıyla silindi.');
-    }).catch(function (error) {
-        console.error('Silme hatasi:', error);
-    });
+    db.collection('isplanlari').doc(id).delete()
+        .then(function () {
+            alert('İş planı başarıyla silindi.');
+        })
+        .catch(function (error) {
+            console.error('Silme hatasi:', error);
+        });
 }
 
-// ========== IS PLANI DUZENLE ==========
+// ========== DUZENLE ==========
 
 function duzenleIsPlan(id) {
-    db.collection('isplanlari').doc(id).get().then(function (doc) {
-        if (doc.exists) {
-            var plan = doc.data();
-            isIdInput.value = id;
-            form.isTanimi.value = plan.isTanimi || '';
-            form.ucakModeli.value = plan.ucakModeli || '';
-            form.gerekliKimyasallar.value = Array.isArray(plan.gerekliKimyasallar) ? plan.gerekliKimyasallar.join(', ') : (plan.gerekliKimyasallar || '');
-            form.gerekliToollar.value = Array.isArray(plan.gerekliToollar) ? plan.gerekliToollar.join(', ') : (plan.gerekliToollar || '');
-            form.ozelNotlar.value = plan.ozelNotlar || '';
+    db.collection('isplanlari').doc(id).get()
+        .then(function (doc) {
+            if (doc.exists) {
+                var plan = doc.data();
+                isIdInput.value = id;
+                form.isTanimi.value = plan.isTanimi || '';
+                form.ucakModeli.value = plan.ucakModeli || '';
+                form.gerekliKimyasallar.value = Array.isArray(plan.gerekliKimyasallar)
+                    ? plan.gerekliKimyasallar.join(', ')
+                    : (plan.gerekliKimyasallar || '');
+                form.gerekliToollar.value = Array.isArray(plan.gerekliToollar)
+                    ? plan.gerekliToollar.join(', ')
+                    : (plan.gerekliToollar || '');
+                form.ozelNotlar.value = plan.ozelNotlar || '';
 
-            mevcutResimURLleri = (plan.resimler && Array.isArray(plan.resimler)) ? plan.resimler.slice() : [];
-            yeniDosyalar = [];
-            renderOnizleme();
+                resimlerBase64 = (plan.resimler && Array.isArray(plan.resimler)) ? plan.resimler.slice() : [];
+                renderOnizleme();
 
-            formButton.textContent = 'İş Planını Güncelle';
-            formButton.disabled = false;
-            window.scrollTo(0, 0);
-        } else {
-            console.log('Belge bulunamadi!');
-        }
-    }).catch(function (error) {
-        console.error('Belge getirme hatasi:', error);
-    });
+                formButton.textContent = 'İş Planını Güncelle';
+                formButton.disabled = false;
+                window.scrollTo(0, 0);
+            }
+        })
+        .catch(function (error) {
+            console.error('Belge getirme hatasi:', error);
+        });
 }
