@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="tr">
 <head>
@@ -24,33 +25,33 @@
     <hr>
 
   ...
-    <h2>Kayıtlı İş Planları</h2>
-    <div id="isPlaniListesi">
-        </div>
+    <h2>Kayıtlı İş Planları</h2>
+    <div id="isPlaniListesi">
+        </div>
 
-        <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-firestore.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-firestore.js"></script>
 
-        <script>
+        <script>
         // Yeni SDK import ve initializeApp kodlarını kaldırdık!
         // YALNIZCA KESİN GEREKLİ OLAN KOD BU BLOKTA KALMALIDIR.
         
-        const firebaseConfig = {
-          apiKey: "AIzaSyCRHZOad1bBRLku_SLYRdRMBLZh9q8Q5Z8",
-          authDomain: "isplanla-d7835.firebaseapp.com",
-          projectId: "isplanla-d7835",
-          storageBucket: "isplanla-d7835.firebasestorage.app",
-          messagingSenderId: "724229140928",
-          appId: "1:724229140928:web:35ff075c47dcb533f35825"
-        };
+        const firebaseConfig = {
+          apiKey: "AIzaSyCRHZOad1bBRLku_SLYRdRMBLZh9q8Q5Z8",
+          authDomain: "isplanla-d7835.firebaseapp.com",
+          projectId: "isplanla-d7835",
+          storageBucket: "isplanla-d7835.firebasestorage.app",
+          messagingSenderId: "724229140928",
+          appId: "1:724229140928:web:35ff075c47dcb533f35825"
+        };
 
-        // Firebase'i başlat (V8 yöntemi)
-        firebase.initializeApp(firebaseConfig);
-        // Firestore referansını al ve GLOBAL olarak tanımla
-        const db = firebase.firestore();
-    </script>
+        // Firebase'i başlat (V8 yöntemi)
+        firebase.initializeApp(firebaseConfig);
+        // Firestore referansını al ve GLOBAL olarak tanımla
+        const db = firebase.firestore();
+    </script>
 
-        <script src="script.js"></script>
+        <script src="script.js"></script>
 </body>
 </html>
 
