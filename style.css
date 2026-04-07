@@ -4,22 +4,42 @@ body {
     margin: 0 auto;
     padding: 20px;
 }
+
 h1, h2 {
     color: #004d99;
 }
-#isEkleFormu input, #isEkleFormu textarea, #isEkleFormu button {
+
+h1 {
+    margin-top: 40px;
+}
+
+#isEkleFormu input[type="text"],
+#isEkleFormu textarea,
+#isEkleFormu button[type="submit"] {
     display: block;
     width: 100%;
     margin-bottom: 10px;
     padding: 10px;
     box-sizing: border-box;
 }
-#isEkleFormu button {
+
+#isEkleFormu button[type="submit"] {
     background-color: #007bff;
     color: white;
     border: none;
     cursor: pointer;
+    font-size: 16px;
 }
+
+#isEkleFormu button[type="submit"]:hover {
+    background-color: #0056b3;
+}
+
+#isEkleFormu button[type="submit"]:disabled {
+    background-color: #999;
+    cursor: not-allowed;
+}
+
 .is-plani-kart {
     border: 1px solid #ccc;
     padding: 15px;
@@ -27,43 +47,38 @@ h1, h2 {
     border-radius: 5px;
     background-color: #f9f9f9;
 }
+
 .is-plani-kart button {
     margin-right: 10px;
     padding: 5px 10px;
     cursor: pointer;
-
 }
 
-/* --- Sol Üst Köşe Ev Butonu Stili --- */
+/* Sol Üst Köşe Ev Butonu */
 .home-btn {
-    position: fixed; /* Sayfa kaydırılsa bile sol üstte sabit kalır */
+    position: fixed;
     top: 15px;
     left: 15px;
     width: 45px;
     height: 45px;
-    background-color: #007bff; /* Mavi buton rengi */
+    background-color: #007bff;
     color: white;
     font-size: 24px;
     text-decoration: none;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 50%; /* Yuvarlak yapar */
+    border-radius: 50%;
     box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-    z-index: 1000; /* Diğer öğelerin üstünde durmasını sağlar */
+    z-index: 1000;
     transition: background-color 0.3s;
 }
 
 .home-btn:hover {
-    background-color: #0056b3; /* Üzerine gelince koyulaşır */
+    background-color: #0056b3;
 }
 
-/* Mobilde başlığın butonun altında kalmaması için h1'e biraz boşluk verelim */
-h1 {
-    margin-top: 40px;
-}
-
-/* Resim Ekleme Stilleri */
+/* Resim Ekleme */
 .resim-label {
     display: block;
     margin-bottom: 5px;
@@ -72,11 +87,15 @@ h1 {
 }
 
 #isEkleFormu input[type="file"] {
+    display: block;
+    width: 100%;
     padding: 8px;
+    margin-bottom: 10px;
     border: 1px dashed #007bff;
     border-radius: 5px;
     background-color: #f0f8ff;
     cursor: pointer;
+    box-sizing: border-box;
 }
 
 .resim-onizleme {
